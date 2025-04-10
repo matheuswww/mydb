@@ -430,3 +430,38 @@ func (tree *BTree) Insert(key []byte, val []byte) {
 		tree.root = tree.new(splitted[0])
 	}
 }
+
+func (tree *BTree) Get(key []byte) ([]byte, bool) {
+	assert(len(key) != 0)
+	assert(len(key) <= BTREE_MAX_KEY_SIZE)
+	// If tree is empty
+	if tree.root == 0 {
+		return nil, false
+	}
+
+	// Start at root
+	node := tree.get(tree.root)
+
+	// Start at root
+	for {
+		// Find position where key should be
+		idx := nodeLookupLE(node, key)
+		
+		switch node.btype() {
+			// In leaf node, check if we found the key
+		case BNODE_LEAF:
+			if bytes.Equal(key, node.getKey(idx)) {
+				return node.getVal(idx), true
+			}
+			// Key not found
+			return nil, false
+		case BNODE_NODE:
+		  // In internal node, follow pointer to next level
+			ptr := node.getPtr(idx)
+			node = tree.get(ptr)
+			
+		default:
+			panic("bad node type")
+		}
+	}
+}
